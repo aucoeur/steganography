@@ -81,7 +81,6 @@ def encode_image(path_to_png, msg):
             elif int(text_flag[-1]) & 1 == 0:
                 red[x,y] = int(bin(red[x,y])[:-1]+"0", 2)
 
-
             pixels[x,y] = (red[x, y], green[x,y], blue[x,y])
 
     new_filename = path_to_png.split('.')
