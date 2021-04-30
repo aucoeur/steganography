@@ -9,7 +9,7 @@ Deliverables:
     3. Your own image encoded with hidden secret text!
 """
 # TODO: Run `pip3 install Pillow` before running the code.
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 def decode_image(path_to_png):
     """
@@ -35,26 +35,75 @@ def decode_image(path_to_png):
         for y in range(0, y_size):
             # print(f"{red_pixels[x, y]:08b}", red_pixels[x, y])
 
-            if red_pixels[x, y] & 1 == 1:
+            # bitwise AND operator (&) returns a 1 in each bit position for which the corresponding bits of both operands are 1
+            # nb. LSB for odd numbers always 1, even numbers always 0
+            if red_pixels[x, y] & 1 == 0:
                 pixels[x,y] = (255, 255, 255)
-            elif red_pixels[x, y] & 1 == 0:
+            else:
+                # if red_pixels[x, y] & 1 == 0:
                 pixels[x,y] = (0, 0, 0)
 
     # DO NOT MODIFY. Save the decoded image to disk:
-    decoded_image.save("decoded_image.png")
+    # decoded_image.save("decoded_image.png")
+    decoded_filename = path_to_png.split('.')
+    decoded_image.save(f'{decoded_filename[0]}-decoded.png')
 
 
-def encode_image(path_to_png):
+def encode_image(path_to_png, msg):
     """
     Encodes an image with a secret message on the red channel by tweaking its LSB
     """
-    pass
+    base_image = Image.open(path_to_png)
+    pixels = base_image.load()
+
+    redc = base_image.split()[0]
+    greenc = base_image.split()[1]
+    bluec = base_image.split()[2]
+
+    red = redc.load()
+    green = greenc.load()
+    blue = bluec.load()
+
+    x_width, y_height = base_image.size
+
+    hiddenText = write_text(msg, base_image.size)
+
+    secret_red = hiddenText.split()[0]
+    secret_pixel = secret_red.load()
+
+    for x in range(x_width):
+        for y in range(y_height):
+            red_flag = bin(red[x,y])[-1]
+            text_flag = bin(secret_pixel[x,y])[-1]
+
+            if int(text_flag[-1]) & 1 == 1:
+                red[x,y] = int(bin(red[x,y])[:-1]+"1", 2)
+            elif int(text_flag[-1]) & 1 == 0:
+                red[x,y] = int(bin(red[x,y])[:-1]+"0", 2)
 
 
-def write_text(text_to_write):
+            pixels[x,y] = (red[x, y], green[x,y], blue[x,y])
+
+    new_filename = path_to_png.split('.')
+    base_image.save(f'{new_filename[0]}-encoded.png')
+
+def write_text(text_to_write, size):
     """
     Creates temp image of given text to use when encoding image with secret message
     """
-    pass
+    image = Image.new("RGB", size, (0, 0, 0))
 
-decode_image('bear_dog.png')
+    font = ImageFont.truetype('/Library/Fonts/AvenirLTStd-Black.otf', 24)
+
+    draw = ImageDraw.Draw(im=image)
+
+    draw.text((25, 200), text_to_write, font=font, fill=(255, 255, 255, 255))
+
+    return image
+
+
+if __name__ == "__main__":
+    # decode_image('src/bear_dog.png')
+    msg = 'candy camouflage!'
+    encode_image('src/over_the_garden_wall.png', msg)
+    decode_image('src/over_the_garden_wall-encoded.png')
