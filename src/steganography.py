@@ -69,10 +69,13 @@ def encode_image(path_to_png, msg):
 
             if text_flag == 1:
                 # print(red, text_flag, red | text_flag)
+
+                # bitwise OR ..makes it odd
                 red = red | text_flag
             else:
-                # note: LSB for odd numbers always 1, even numbers always 0 (ie. n % 2)
+                # LSB for odd numbers always 1, even numbers always 0 (ie. n % 2)
                 if red % 2 == 1:
+                    # XOR makes it toggle to even..kinda..
                     red = red ^ 1
 
             pixels[x,y] = (red, green, blue, alpha)
@@ -98,7 +101,7 @@ def write_text(text_to_write, size):
 
 if __name__ == "__main__":
     # decode_image('src/bear_dog.png')
-    # msg = 'candy camouflage!'
-    msg = 'yessir young man!'
+
+    msg = 'candy camouflage!'
     encode_image('src/otgw.png', msg)
     decode_image('src/otgw-encoded.png')
